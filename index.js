@@ -1,26 +1,28 @@
-const puppeteer = require('puppeteer-extra')
-const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 const { spawn } = require("child_process");
 
 const DEFAULT_PATH = '';
+const EXECUTABLE_PATH = process.platform === 'darwin' ? '/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome' : undefined;
 
 (async () => {
-    const b = await puppeteer.launch({ headless: false, defaultViewport: null, executablePath: '/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome' })
-    const page = await b.newPage()
+    const browser = await puppeteer.launch({ headless: false, defaultViewport: null, executablePath: EXECUTABLE_PATH });
+    const page = await browser.newPage();
 
     page.on('response', async res => {
         const req = res.request();
         if (req.url().includes('.m3u8') && req.url().includes('jsonp')) {
-            const data = await res.text()
-            const { flavors, duration } = JSON.parse(data.split('(')[1].slice(0, -2))
+            const data = await res.text(); // JSONP from basic response
+            const { flavors, duration } = JSON.parse(data.split('(')[1].slice(0, -2));
 
-            flavors.sort((a, b) => a.width * a.height - b.width * b.height)
-            const { url } = flavors.pop()
+            // Get the highest resolution flavor URL
+            flavors.sort((a, b) => a.width * a.height - b.width * b.height);
+            const { url } = flavors.pop();
 
-            const filename = (await page.title()).trim().replace(/[^a-zA-Z0-9]/g, '_')
+            const filename = (await page.title()).trim().replace(/[^a-zA-Z0-9]/g, '_');
 
-            console.log('Starting Download: ', filename, duration)
+            console.log('Starting Download: ', filename, duration);
 
             const ffmpeg = spawn(`ffmpeg`, [
                 '-y',
@@ -34,11 +36,11 @@ const DEFAULT_PATH = '';
                 '-c', 
                 'copy',
                 `${DEFAULT_PATH}${filename}.mp4`
-            ], { stdio: 'inherit' })
+            ], { stdio: 'inherit' });
 
             ffmpeg.on('exit', exitCode => {
-                exitCode ? console.error(`Err: ${exitCode} | ${filename}`) : console.log(`Success: ${filename}`)
-            })
+                exitCode ? console.error(`Err: ${exitCode} | ${filename}`) : console.log(`Success: ${filename}`);
+            });
         }
     });
 
