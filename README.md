@@ -3,4 +3,4 @@
 - Install [FFMPEG](https://ffmpeg.org/)
 - `npm install`
 - `node index.js`
-- Use Chrome like normal; visit target video and download will start automatically
+- Use Chrome like normal; visit target video, click play and download will start automatically

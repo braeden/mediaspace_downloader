@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
-const { spawn } = require("child_process");
+const { spawn } = require('child_process');
 
 const DEFAULT_PATH = '';
 const EXECUTABLE_PATH = process.platform === 'darwin' ? '/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome' : undefined;
