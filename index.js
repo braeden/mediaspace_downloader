@@ -17,12 +17,15 @@ const EXECUTABLE_PATH = process.platform === 'darwin' ? '/Applications/Google\ C
             const { flavors, duration } = JSON.parse(data.split('(')[1].slice(0, -2));
 
             // Get the highest resolution flavor URL
-            flavors.sort((a, b) => a.width * a.height - b.width * b.height);
-            const { url } = flavors.pop();
+            const [{ url, width, height }] = flavors.sort((a, b) => b.width * b.height - a.width * a.height);
 
             const filename = (await page.title()).trim().replace(/[^a-zA-Z0-9]/g, '_');
 
-            console.log('Starting Download: ', filename, duration);
+            console.log('Starting Download: ',
+                filename,
+                `${Math.floor(duration / (60 * 60))}:${Math.floor(duration / 60) % 60}:${duration % 60}`,
+                `${width}x${height}`
+            );
 
             const ffmpeg = spawn(`ffmpeg`, [
                 '-y',
@@ -33,7 +36,7 @@ const EXECUTABLE_PATH = process.platform === 'darwin' ? '/Applications/Google\ C
                 'file,http,https,tcp,tls,crypto',
                 '-i',
                 `${url}`,
-                '-c', 
+                '-c',
                 'copy',
                 `${DEFAULT_PATH}${filename}.mp4`
             ], { stdio: 'inherit' });
